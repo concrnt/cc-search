@@ -145,6 +145,7 @@ func main() {
 	redis_url = os.Getenv("REDIS_URL")
 	meilisearch_url = os.Getenv("MEILISEARCH_URL")
 	meilisearch_key = os.Getenv("MEILISEARCH_KEY")
+	meilisearch_idx = os.Getenv("MEILISEARCH_IDX")
 	port_env := os.Getenv("PORT")
 	if port_env != "" {
 		port, _ = strconv.Atoi(port_env)
