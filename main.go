@@ -1,12 +1,12 @@
 package main
 
 import (
-	"net/http"
-	"os"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 	"slices"
 	"strconv"
 	"sync/atomic"
@@ -28,24 +28,24 @@ var (
 	meilisearch_key = ""
 	meilisearch_idx = ""
 	redis_url       = ""
-	port			= 8000
+	port            = 8000
 )
 
 var indexing int32 = 0
 
 type searchResult struct {
-	ID       string `json:"id"`
-	Owner	string `json:"owner"`
+	ID    string `json:"id"`
+	Owner string `json:"owner"`
 }
 
 type messageRecord struct {
-	ID       string `json:"id"`
-	Type     string `json:"type"`
-	Body     any `json:"body"`
-	Schema   string `json:"schema"`
-	SignedAt time.Time `json:"signedAt"`
-	Signer   string `json:"signer"`
-	Timelines []string `json:"timelines"`
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	Body      any       `json:"body"`
+	Schema    string    `json:"schema"`
+	SignedAt  time.Time `json:"signedAt"`
+	Signer    string    `json:"signer"`
+	Timelines []string  `json:"timelines"`
 }
 
 func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilisearch.IndexManager) {
@@ -107,12 +107,12 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 						continue
 					}
 					documents = append(documents, messageRecord{
-						ID:       id,
-						Type:     "message",
-						Body:     message.Body,
-						Schema:   message.Schema,
-						SignedAt: message.SignedAt,
-						Signer:   message.Signer,
+						ID:        id,
+						Type:      "message",
+						Body:      message.Body,
+						Schema:    message.Schema,
+						SignedAt:  message.SignedAt,
+						Signer:    message.Signer,
 						Timelines: message.Timelines,
 					})
 				}
@@ -138,7 +138,6 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 
 	log.Println("indexing finished")
 }
-
 
 func main() {
 
@@ -187,7 +186,7 @@ func main() {
 	filters := []string{"signer", "timelines"}
 
 	ok := false
-	if (len(*filterables) == len(filters)) {
+	if len(*filterables) == len(filters) {
 		for _, filter := range filters {
 			if !slices.Contains(*filterables, filter) {
 				ok = false
@@ -208,7 +207,7 @@ func main() {
 
 	ctx := context.Background()
 
-	go func () {
+	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		for {
 			select {
@@ -237,7 +236,7 @@ func main() {
 
 		search, err := index.Search(query,
 			&meilisearch.SearchRequest{
-				Limit: 10,
+				Limit:  10,
 				Filter: fmt.Sprintf("timelines = \"%s\"", timeline),
 			},
 		)
@@ -257,7 +256,7 @@ func main() {
 		for _, hit := range hits {
 			hitDoc := hit.(map[string]any)
 			results = append(results, searchResult{
-				ID: hitDoc["id"].(string),
+				ID:    hitDoc["id"].(string),
 				Owner: hitDoc["signer"].(string),
 			})
 		}
@@ -267,6 +266,3 @@ func main() {
 
 	log.Fatal(e.Start(fmt.Sprintf(":%d", port)))
 }
-
-
-
