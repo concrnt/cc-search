@@ -220,7 +220,7 @@ func main() {
 
 	e.Use(middleware.Logger())
 
-	e.GET("/search", func(c echo.Context) error {
+	e.GET("/timeline/:id", func(c echo.Context) error {
 		query := c.QueryParam("q")
 		if query == "" {
 			return c.JSON(http.StatusBadRequest, echo.Map{
@@ -228,7 +228,7 @@ func main() {
 			})
 		}
 
-		timeline := c.QueryParam("timeline")
+		timeline := c.Param("id")
 		if timeline == "" {
 			return c.JSON(http.StatusBadRequest, echo.Map{
 				"error": "timeline is empty",
