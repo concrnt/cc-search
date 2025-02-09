@@ -72,7 +72,7 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 
 	lastKey := uint(lastKey64)
 
-	pageSize := 100
+	pageSize := 512
 
 	for {
 		var commits []core.CommitLog
@@ -237,6 +237,8 @@ func main() {
 	}()
 
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	e.GET("/timeline/:id", func(c echo.Context) error {
 		query := c.QueryParam("q")
