@@ -76,7 +76,7 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 
 	for {
 		var commits []core.CommitLog
-		db.Where("id > ?", lastKey).Find(&commits).Limit(pageSize).Find(&commits)
+		db.Where("id > ?", lastKey).Limit(pageSize).Find(&commits)
 
 		documents := []messageRecord{}
 
