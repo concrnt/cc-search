@@ -39,13 +39,13 @@ type searchResult struct {
 }
 
 type messageRecord struct {
-	ID        string    `json:"id"`
-	Type      string    `json:"type"`
-	Body      any       `json:"body"`
-	Schema    string    `json:"schema"`
-	SignedAt  time.Time `json:"signedAt"`
-	Signer    string    `json:"signer"`
-	Timelines []string  `json:"timelines"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Body      any      `json:"body"`
+	Schema    string   `json:"schema"`
+	SignedAt  int64    `json:"signedAt"`
+	Signer    string   `json:"signer"`
+	Timelines []string `json:"timelines"`
 }
 
 func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilisearch.IndexManager) {
@@ -72,7 +72,7 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 
 	lastKey := uint(lastKey64)
 
-	pageSize := 1024
+	pageSize := 100
 
 	for {
 		var commits []core.CommitLog
@@ -111,7 +111,7 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 						Type:      "message",
 						Body:      message.Body,
 						Schema:    message.Schema,
-						SignedAt:  message.SignedAt,
+						SignedAt:  message.SignedAt.UnixMilli(),
 						Signer:    message.Signer,
 						Timelines: message.Timelines,
 					})
@@ -176,14 +176,10 @@ func main() {
 	}
 
 	index := client.Index(meilisearch_idx)
-
 	filterables, err := index.GetFilterableAttributes()
 	if err != nil {
 		panic(err)
 	}
-
-	log.Println(filterables)
-
 	filters := []string{"signer", "timelines"}
 
 	ok := false
@@ -194,16 +190,38 @@ func main() {
 				break
 			}
 		}
-
 		ok = true
 	}
-
 	if !ok {
 		_, err := index.UpdateFilterableAttributes(&filters)
 		if err != nil {
 			panic(err)
 		}
 		log.Println("filterables updated")
+	}
+
+	sorts := []string{"signedAt"}
+	sortables, err := index.GetSortableAttributes()
+	if err != nil {
+		panic(err)
+	}
+
+	ok = false
+	if len(*sortables) == len(sorts) {
+		for _, sort := range sorts {
+			if !slices.Contains(*sortables, sort) {
+				ok = false
+				break
+			}
+		}
+		ok = true
+	}
+	if !ok {
+		_, err := index.UpdateSortableAttributes(&sorts)
+		if err != nil {
+			panic(err)
+		}
+		log.Println("sortables updated")
 	}
 
 	ctx := context.Background()
@@ -239,6 +257,7 @@ func main() {
 			&meilisearch.SearchRequest{
 				Limit:  10,
 				Filter: fmt.Sprintf("timelines = \"%s\"", timeline),
+				Sort:   []string{"signedAt:desc"},
 			},
 		)
 
