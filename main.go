@@ -53,10 +53,8 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 	if atomic.CompareAndSwapInt32(&indexing, 0, 1) {
 		defer atomic.StoreInt32(&indexing, 0)
 	} else {
-		log.Println("indexing in progress")
 		return
 	}
-	log.Println("indexing started")
 
 	lastKeyStr, err := rdb.Get(ctx, "ccsearch:readitr").Result()
 	if err != nil {
@@ -121,22 +119,25 @@ func indexLogs(ctx context.Context, db *gorm.DB, rdb *redis.Client, index meilis
 			lastKey = commit.ID
 		}
 
+		if len(documents) == 0 {
+			break
+		}
+
 		_, err := index.AddDocuments(documents)
 		if err != nil {
 			log.Println(err)
 			break
 		}
 
-		if len(commits) < pageSize {
+		rdb.Set(ctx, "ccsearch:readitr", lastKey, 0)
+		log.Println("indexed until -> ", lastKey)
+
+		if len(commits) < pageSize { // no more commits
 			break
 		}
 
-		rdb.Set(ctx, "ccsearch:readitr", lastKey, 0)
-
 		time.Sleep(1 * time.Second)
 	}
-
-	log.Println("indexing finished")
 }
 
 func main() {
