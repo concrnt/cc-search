@@ -249,6 +249,12 @@ func main() {
 			})
 		}
 
+		offsetStr := c.QueryParam("offset")
+		offset := 0
+		if offsetStr != "" {
+			offset, _ = strconv.Atoi(offsetStr)
+		}
+
 		timeline := c.Param("id")
 		if timeline == "" {
 			return c.JSON(http.StatusBadRequest, echo.Map{
@@ -259,6 +265,7 @@ func main() {
 		search, err := index.Search(query,
 			&meilisearch.SearchRequest{
 				Limit:  10,
+				Offset: int64(offset),
 				Filter: fmt.Sprintf("timelines = \"%s\"", timeline),
 				Sort:   []string{"signedAt:desc"},
 			},
@@ -284,7 +291,14 @@ func main() {
 			})
 		}
 
-		return c.JSON(http.StatusOK, echo.Map{"status": "ok", "content": results})
+		return c.JSON(http.StatusOK,
+			echo.Map{
+				"status":  "ok",
+				"content": results,
+				"limit":   search.Limit,
+				"offset":  search.Offset,
+			},
+		)
 	})
 
 	log.Fatal(e.Start(fmt.Sprintf(":%d", port)))
