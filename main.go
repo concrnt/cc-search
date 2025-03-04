@@ -31,6 +31,13 @@ var (
 	port            = 8000
 )
 
+var (
+	version      = "unknown"
+	buildMachine = "unknown"
+	buildTime    = "unknown"
+	goVersion    = "unknown"
+)
+
 var indexing int32 = 0
 
 type searchResult struct {
@@ -240,6 +247,13 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
+
+	e.GET("/cc-info", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, core.CCInfo{
+			Name:    "github.com/concrnt/cc-search",
+			Version: version,
+		})
+	})
 
 	e.GET("/timeline/:id", func(c echo.Context) error {
 		query := c.QueryParam("q")

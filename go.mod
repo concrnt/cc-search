@@ -6,7 +6,7 @@ require (
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/meilisearch/meilisearch-go v0.30.0
 	github.com/redis/go-redis/v9 v9.7.0
-	github.com/totegamma/concurrent v1.6.6
+	github.com/totegamma/concurrent v1.6.10
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )
