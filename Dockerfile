@@ -1,6 +1,8 @@
 FROM golang:latest AS builder
 WORKDIR /work
 
+ARG VERSION
+
 COPY ./go.mod ./go.sum ./
 RUN go mod download && go mod verify
 COPY ./ ./
