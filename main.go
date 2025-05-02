@@ -12,12 +12,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/concrnt/concrnt/cdid"
+	"github.com/concrnt/concrnt/core"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/redis/go-redis/v9"
-	"github.com/totegamma/concurrent/cdid"
-	"github.com/totegamma/concurrent/core"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
